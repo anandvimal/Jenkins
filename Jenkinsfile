@@ -9,8 +9,10 @@ pipeline {
 	    	}
 	    timeout(time: 3, unit: 'MINUTES'){
 		sh 'echo "healthcheck needs to be done"'
+	    	}
 	    }
-	}
-    }	     
+    	}
+    }		     
 }
+
 
