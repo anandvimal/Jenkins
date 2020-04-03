@@ -1,18 +1,32 @@
 pipeline {
-    agent { docker { image 'python:3.5.1' } }
-    stages {
-	stage('build'){
-	    steps{
-		retry(3){
-		    sh 'echo "hello World!'
-	    	    sh 'python --version'
-	    	}
-	    timeout(time: 3, unit: 'MINUTES'){
-		sh 'echo "healthcheck needs to be done"'
-	    	}
-	    }
-    	}
-    }		     
+     agent any
+     stages {
+         stage('Build') {
+             steps {
+                 sh 'echo "Hello World"'
+                 sh '''
+                     echo "Multiline shell steps works too"
+                     ls -lah
+                 '''
+             }
+         }
+         stage('Lint HTML') {
+              steps {
+                  sh 'tidy -q -e *.html'
+              }
+         }
+         stage('Security Scan') {
+              steps { 
+                 aquaMicroscanner imageName: 'alpine:latest', notCompleted: 'exit 1', onDisallowed: 'fail'
+              }
+         }         
+         stage('Upload to AWS') {
+              steps {
+                  withAWS(region:'us-east-2',credentials:'aws-static') {
+                  sh 'echo "Uploading content with AWS creds"'
+                      s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:'index.html', bucket:'static-jenkins-pipeline')
+                  }
+              }
+         }
+     }
 }
-
-
